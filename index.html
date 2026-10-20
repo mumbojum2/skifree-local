@@ -1,33 +1,137 @@
-<html>
-  <head>
-    <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
-    <script src="https://v8.js-dos.com/latest/js-dos.js"></script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SkiFree — DOS Emulator</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/caiiiycuk/js-dos@6.22.44/dist/js-dos.css">
+    <script src="https://cdn.jsdelivr.net/gh/caiiiycuk/js-dos@6.22.44/dist/js-dos.js"></script>
+
     <style>
         html, body {
             margin: 0;
             width: 100%;
             height: 100%;
+            overflow: hidden;
             background: #000;
         }
 
         #dos {
+            display: block;
             width: 100%;
             height: 100%;
         }
     </style>
-        <title>MS-DOS Emulator</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  </head>
-  <body>
-    <div id="dos"></div>
+</head>
+<body>
+    <canvas id="dos" tabindex="0"></canvas>
 
     <script>
-      Dos(document.getElementById("dos"), {
-        url: "https://raw.githubusercontent.com/mumbojum2/skifree-local/refs/heads/main/SKIFRD12.ZIP"
-      });
+    const zip =
+        "https://raw.githubusercontent.com/mumbojum2/skifree-local/refs/heads/main/SKIFRD12.ZIP";
+
+    const canvas = document.getElementById("dos");
+
+    Dos(canvas, {
+        wdosboxUrl: "https://js-dos.com/6.22/current/wdosbox.js"
+    }).ready((fs, main) => {
+        fs.extract(zip).then(() => {
+            main([
+                "-c", "cd SKIFREED",
+                "-c", "SKIFREED.EXE -nomouse"
+            ]).then((ci) => {
+                // DOSBox key codes
+                const KEY = {
+                    LEFT:  37,
+                    UP:    38,
+                    RIGHT: 39,
+                    DOWN:  40,
+                    INSERT:45,
+                    F2:    113,
+                    F3:    114,
+                    F:     70,
+                    S:     83,
+                    X:     88,
+                    Y:     89
+                };
+
+                // WASD movement and additional controls
+                const keyMap = {
+                    "w": KEY.UP,
+                    "a": KEY.LEFT,
+                    "s": KEY.DOWN,
+                    "d": KEY.RIGHT,
+                    "ArrowUp": KEY.UP,
+                    "ArrowLeft": KEY.LEFT,
+                    "ArrowDown": KEY.DOWN,
+                    "ArrowRight": KEY.RIGHT,
+                    " ": KEY.INSERT,
+                    "F2": KEY.F2,
+                    "F3": KEY.F3,
+                    "f": KEY.F,
+                    "s": KEY.DOWN,
+                    "x": KEY.X,
+                    "y": KEY.Y
+                };
+
+                const held = new Set();
+
+                function onKeyDown(e) {
+                    const key = e.key.length === 1
+                        ? e.key.toLowerCase()
+                        : e.key;
+
+                    const code = keyMap[key];
+                    if (code === undefined) return;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (!held.has(key)) {
+                        held.add(key);
+                        ci.simulateKeyEvent(code, true);
+                    }
+                }
+
+                function onKeyUp(e) {
+                    const key = e.key.length === 1
+                        ? e.key.toLowerCase()
+                        : e.key;
+
+                    const code = keyMap[key];
+                    if (code === undefined) return;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (held.has(key)) {
+                        held.delete(key);
+                        ci.simulateKeyEvent(code, false);
+                    }
+                }
+
+                window.addEventListener("keydown", onKeyDown, true);
+                window.addEventListener("keyup", onKeyUp, true);
+
+                window.addEventListener("blur", () => {
+                    for (const key of held) {
+                        const code = keyMap[key];
+                        if (code !== undefined) {
+                            ci.simulateKeyEvent(code, false);
+                        }
+                    }
+                    held.clear();
+                });
+
+                canvas.focus();
+            });
+        }).catch(error => {
+            console.error("ZIP extraction failed:", error);
+        });
+    });
     </script>
-    <script type="module">
-      import jsDos from 'https://cdn.jsdelivr.net/npm/js-dos@8.5.3/+esm'
-    </script>
-  </body>
+</body>
 </html>
