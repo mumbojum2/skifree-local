@@ -5,10 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SkiFree — DOS Emulator</title>
-
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/caiiiycuk/js-dos@6.22.44/dist/js-dos.css">
-    <script src="https://cdn.jsdelivr.net/gh/caiiiycuk/js-dos@6.22.44/dist/js-dos.js"></script>
+    <script src="https://github.com/mumbojum2/skifree-local/raw/refs/heads/main/js-dos.js"></script>
 
     <style>
         html, body {
@@ -36,7 +33,7 @@
     const canvas = document.getElementById("dos");
 
     Dos(canvas, {
-        wdosboxUrl: "https://js-dos.com/6.22/current/wdosbox.js"
+        wdosboxUrl: "https://github.com/mumbojum2/skifree-local/raw/refs/heads/main/wdosbox.js"
     }).ready((fs, main) => {
         fs.extract(zip).then(() => {
             main([
